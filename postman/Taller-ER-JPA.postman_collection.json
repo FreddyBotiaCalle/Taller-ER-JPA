@@ -1,0 +1,906 @@
+{
+  "info": {
+    "name": "Taller ER JPA",
+    "_postman_id": "6f11d0b2-0ea9-4a47-9d50-7f2266a61f2a",
+    "description": "Coleccion final para probar los endpoints REST del taller FIET.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:8080"
+    },
+    {
+      "key": "docenteId",
+      "value": "1"
+    },
+    {
+      "key": "formatoAId",
+      "value": "1"
+    },
+    {
+      "key": "evaluacionId",
+      "value": "1"
+    },
+    {
+      "key": "observacionId",
+      "value": "1"
+    }
+  ],
+  "item": [
+    {
+      "name": "Docentes",
+      "item": [
+        {
+          "name": "Listar docentes",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/docentes",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "docentes"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Response time is under 2000ms', function () {",
+                  "  pm.expect(pm.response.responseTime).to.be.below(2000);",
+                  "});",
+                  "",
+                  "pm.test('Response is an array', function () {",
+                  "  const body = pm.response.json();",
+                  "  pm.expect(body).to.be.an('array');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Crear docente",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombresDocente\": \"Maria\",\n  \"apellidosDocente\": \"Diaz\",\n  \"nombreGrupo\": \"G3\",\n  \"correo\": \"maria.diaz@correo.com\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/docentes",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "docentes"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 201', function () {",
+                  "  pm.response.to.have.status(201);",
+                  "});",
+                  "",
+                  "pm.test('Docente payload is returned', function () {",
+                  "  const body = pm.response.json();",
+                  "  pm.expect(body).to.have.property('idDocente');",
+                  "  pm.expect(body).to.have.property('nombresDocente', 'Maria');",
+                  "  pm.expect(body).to.have.property('apellidosDocente', 'Diaz');",
+                  "  pm.expect(body).to.have.property('correo', 'maria.diaz@correo.com');",
+                  "});",
+                  "",
+                  "pm.test('Save docenteId for later requests', function () {",
+                  "  const body = pm.response.json();",
+                  "  if (body.idDocente) {",
+                  "    pm.collectionVariables.set('docenteId', String(body.idDocente));",
+                  "  }",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Actualizar docente",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombresDocente\": \"Ana\",\n  \"apellidosDocente\": \"Perez Actualizada\",\n  \"nombreGrupo\": \"G1\",\n  \"correo\": \"ana.perez@correo.com\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/docentes/{{docenteId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "docentes",
+                "{{docenteId}}"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Updated docente is returned', function () {",
+                  "  const body = pm.response.json();",
+                  "  pm.expect(body).to.have.property('idDocente');",
+                  "  pm.expect(body).to.have.property('apellidosDocente', 'Perez Actualizada');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Eliminar docente",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/docentes/{{docenteId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "docentes",
+                "{{docenteId}}"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 204', function () {",
+                  "  pm.response.to.have.status(204);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Formatos A",
+      "item": [
+        {
+          "name": "Crear formato A (TIA/PPA)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"modalidad\": \"TIA\",\n  \"titulo\": \"Formato TI-A de API\",\n  \"objetivoGeneral\": \"Objetivo general\",\n  \"objetivosEspecificos\": \"Objetivos especificos\",\n  \"correoDocente\": \"ana.perez@correo.com\",\n  \"nombresDocente\": \"Ana\",\n  \"apellidosDocente\": \"Perez\",\n  \"nombreGrupo\": \"G1\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/formatos-a",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "formatos-a"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 201', function () {",
+                  "  pm.response.to.have.status(201);",
+                  "});",
+                  "",
+                  "pm.test('Formato A is created with title', function () {",
+                  "  const body = pm.response.json();",
+                  "  pm.expect(body).to.have.property('idFormA0');",
+                  "  pm.expect(body).to.have.property('titulo', 'Formato TI-A de API');",
+                  "});",
+                  "",
+                  "pm.test('Save formatoAId for later requests', function () {",
+                  "  const body = pm.response.json();",
+                  "  if (body.idFormA0) {",
+                  "    pm.collectionVariables.set('formatoAId', String(body.idFormA0));",
+                  "  }",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Crear observacion desde FormatoA",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"idFormatoA\": {{formatoAId}},\n  \"idsDocentes\": [1,2],\n  \"observacion\": \"Se recomienda acotar el alcance.\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/formatos-a/observaciones",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "formatos-a",
+                "observaciones"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 201', function () {",
+                  "  pm.response.to.have.status(201);",
+                  "});",
+                  "",
+                  "pm.test('Observation created', function () {",
+                  "  const body = pm.response.json();",
+                  "  pm.expect(body).to.have.property('idObservacion');",
+                  "  pm.expect(body).to.have.property('observacion');",
+                  "});",
+                  "",
+                  "pm.test('Save observacionId for later requests', function () {",
+                  "  const body = pm.response.json();",
+                  "  if (body.idObservacion) {",
+                  "    pm.collectionVariables.set('observacionId', String(body.idObservacion));",
+                  "  }",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Detalle observaciones por formato",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/formatos-a/{{formatoAId}}/detalle-observaciones",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "formatos-a",
+                "{{formatoAId}}",
+                "detalle-observaciones"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Response is a non-empty text report', function () {",
+                  "  const text = pm.response.text();",
+                  "  pm.expect(text).to.be.a('string');",
+                  "  pm.expect(text.length).to.be.greaterThan(0);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Evaluaciones",
+      "item": [
+        {
+          "name": "Listar evaluaciones",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/evaluaciones",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "evaluaciones"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Response is an array', function () {",
+                  "  const body = pm.response.json();",
+                  "  pm.expect(body).to.be.an('array');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Obtener evaluacion por id",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/evaluaciones/{{evaluacionId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "evaluaciones",
+                "{{evaluacionId}}"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Response has idEvaluacion', function () {",
+                  "  const body = pm.response.json();",
+                  "  pm.expect(body).to.have.property('idEvaluacion');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Crear evaluacion",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"concepto\": \"Por corregir\",\n  \"fechaRegistroConcepto\": \"2026-04-06\",\n  \"nombreCoordinador\": \"Coordinador FIET\",\n  \"idFormatoA\": {{formatoAId}}\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/evaluaciones",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "evaluaciones"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 201', function () {",
+                  "  pm.response.to.have.status(201);",
+                  "});",
+                  "",
+                  "pm.test('Evaluacion is created', function () {",
+                  "  const body = pm.response.json();",
+                  "  pm.expect(body).to.have.property('idEvaluacion');",
+                  "  pm.expect(body).to.have.property('concepto');",
+                  "});",
+                  "",
+                  "pm.test('Save evaluacionId for later requests', function () {",
+                  "  const body = pm.response.json();",
+                  "  if (body.idEvaluacion) {",
+                  "    pm.collectionVariables.set('evaluacionId', String(body.idEvaluacion));",
+                  "  }",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Actualizar evaluacion",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"concepto\": \"Aprobado\",\n  \"fechaRegistroConcepto\": \"2026-04-06\",\n  \"nombreCoordinador\": \"Coordinador FIET\",\n  \"idFormatoA\": {{formatoAId}}\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/evaluaciones/{{evaluacionId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "evaluaciones",
+                "{{evaluacionId}}"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Updated evaluation is returned', function () {",
+                  "  const body = pm.response.json();",
+                  "  pm.expect(body).to.have.property('idEvaluacion');",
+                  "  pm.expect(body).to.have.property('concepto', 'Aprobado');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Eliminar evaluacion",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/evaluaciones/{{evaluacionId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "evaluaciones",
+                "{{evaluacionId}}"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 204', function () {",
+                  "  pm.response.to.have.status(204);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Observaciones",
+      "item": [
+        {
+          "name": "Listar observaciones",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/observaciones",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "observaciones"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Response is an array', function () {",
+                  "  const body = pm.response.json();",
+                  "  pm.expect(body).to.be.an('array');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Obtener observacion por id",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/observaciones/{{observacionId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "observaciones",
+                "{{observacionId}}"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Response has idObservacion', function () {",
+                  "  const body = pm.response.json();",
+                  "  pm.expect(body).to.have.property('idObservacion');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Crear observacion",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"observacion\": \"Ajustar problema y alcance\",\n  \"fechaRegistroObservacion\": \"2026-04-06\",\n  \"idEvaluacion\": {{evaluacionId}},\n  \"idsDocentes\": [1,2]\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/observaciones",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "observaciones"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 201', function () {",
+                  "  pm.response.to.have.status(201);",
+                  "});",
+                  "",
+                  "pm.test('Observation is created', function () {",
+                  "  const body = pm.response.json();",
+                  "  pm.expect(body).to.have.property('idObservacion');",
+                  "  pm.expect(body).to.have.property('observacion', 'Ajustar problema y alcance');",
+                  "});",
+                  "",
+                  "pm.test('Save observacionId for later requests', function () {",
+                  "  const body = pm.response.json();",
+                  "  if (body.idObservacion) {",
+                  "    pm.collectionVariables.set('observacionId', String(body.idObservacion));",
+                  "  }",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Actualizar observacion",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"observacion\": \"Observacion ajustada\",\n  \"fechaRegistroObservacion\": \"2026-04-06\",\n  \"idEvaluacion\": {{evaluacionId}},\n  \"idsDocentes\": [1]\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/observaciones/{{observacionId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "observaciones",
+                "{{observacionId}}"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Updated observation is returned', function () {",
+                  "  const body = pm.response.json();",
+                  "  pm.expect(body).to.have.property('idObservacion');",
+                  "  pm.expect(body).to.have.property('observacion', 'Observacion ajustada');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Eliminar observacion",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/observaciones/{{observacionId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "observaciones",
+                "{{observacionId}}"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 204', function () {",
+                  "  pm.response.to.have.status(204);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Consultas Taller",
+      "item": [
+        {
+          "name": "Listar comite",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/taller/comite",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "taller",
+                "comite"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Response is not empty', function () {",
+                  "  pm.expect(pm.response.text().length).to.be.greaterThan(0);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Consultar formatos por docente",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/taller/docentes/{{docenteId}}/formatos-a",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "taller",
+                "docentes",
+                "{{docenteId}}",
+                "formatos-a"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Response is not empty', function () {",
+                  "  pm.expect(pm.response.text().length).to.be.greaterThan(0);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Listar comite (reportes)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/reportes/comite",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "reportes",
+                "comite"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Consultar formatos por docente (reportes)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/reportes/docentes/{{docenteId}}/formatos-a",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "reportes",
+                "docentes",
+                "{{docenteId}}",
+                "formatos-a"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

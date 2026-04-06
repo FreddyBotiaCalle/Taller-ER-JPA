@@ -1,0 +1,203 @@
+package com.taller.erjpa.service;
+
+import com.taller.erjpa.model.Docente;
+import com.taller.erjpa.model.Estado;
+import com.taller.erjpa.model.Evaluacion;
+import com.taller.erjpa.model.FormatoA;
+import com.taller.erjpa.model.FormatoPpa;
+import com.taller.erjpa.model.FormatoTia;
+import com.taller.erjpa.model.Historico;
+import com.taller.erjpa.model.Observacion;
+import com.taller.erjpa.exception.ResourceNotFoundException;
+import com.taller.erjpa.repository.DocenteRepository;
+import com.taller.erjpa.repository.EvaluacionRepository;
+import com.taller.erjpa.repository.FormatoARepository;
+import com.taller.erjpa.repository.HistoricoRepository;
+import com.taller.erjpa.repository.ObservacionRepository;
+import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Objects;
+import org.springframework.lang.NonNull;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+@Service
+public class TallerRelacionesService {
+
+    public enum ModalidadFormato {
+        TIA,
+        PPA
+    }
+
+    private final DocenteRepository docenteRepository;
+    private final FormatoARepository formatoARepository;
+    private final EvaluacionRepository evaluacionRepository;
+    private final ObservacionRepository observacionRepository;
+    private final HistoricoRepository historicoRepository;
+
+    public TallerRelacionesService(
+            DocenteRepository docenteRepository,
+            FormatoARepository formatoARepository,
+            EvaluacionRepository evaluacionRepository,
+            ObservacionRepository observacionRepository,
+            HistoricoRepository historicoRepository
+    ) {
+        this.docenteRepository = docenteRepository;
+        this.formatoARepository = formatoARepository;
+        this.evaluacionRepository = evaluacionRepository;
+        this.observacionRepository = observacionRepository;
+        this.historicoRepository = historicoRepository;
+    }
+
+    @Transactional(readOnly = false)
+    public FormatoA crearFormatoA(
+            ModalidadFormato modalidad,
+            String titulo,
+            String objetivoGeneral,
+            String objetivosEspecificos,
+            String correoDocente,
+            String nombresDocente,
+            String apellidosDocente,
+            String nombreGrupo
+    ) {
+        Docente docente = docenteRepository.findByCorreo(correoDocente)
+                .orElseGet(() -> new Docente(nombresDocente, apellidosDocente, nombreGrupo, correoDocente));
+
+        FormatoA formato = modalidad == ModalidadFormato.PPA ? new FormatoPpa() : new FormatoTia();
+        formato.setTitulo(titulo);
+        formato.setObjetivoGeneral(objetivoGeneral);
+        formato.setObjetivosEspecificos(objetivosEspecificos);
+        formato.setDocente(docente);
+
+        Estado estadoInicial = new Estado();
+        estadoInicial.setEstadoActual("En formulacion");
+        estadoInicial.setFechaRegistroEstado(LocalDate.now());
+        formato.setEstado(estadoInicial);
+
+        return formatoARepository.save(formato);
+    }
+
+    @Transactional(readOnly = false)
+    public Observacion crearObservacion(@NonNull Long idFormatoA, List<Long> idsDocentes, String textoObservacion) {
+        FormatoA formato = formatoARepository.getReferenceById(idFormatoA);
+
+        Evaluacion evaluacion = evaluacionRepository
+                .findTopByFormatoAOrderByFechaRegistroConceptoDescIdEvaluacionDesc(formato)
+                .map(ultima -> {
+                    if (!"Por corregir".equalsIgnoreCase(ultima.getConcepto())) {
+                        throw new IllegalStateException(
+                                "La ultima evaluacion del formato debe estar en concepto 'Por corregir'."
+                        );
+                    }
+                    return ultima;
+                })
+                .orElseGet(() -> {
+                    Evaluacion nueva = new Evaluacion();
+                    nueva.setConcepto("Sin concepto aun por establecer");
+                    nueva.setFechaRegistroConcepto(LocalDate.now());
+                    nueva.setNombreCoordinador("Pendiente");
+                    nueva.setFormatoA(formato);
+                    return evaluacionRepository.save(nueva);
+                });
+
+        Evaluacion evaluacionRef = evaluacionRepository.getReferenceById(
+            Objects.requireNonNull(evaluacion.getIdEvaluacion(), "La evaluacion debe tener ID")
+        );
+
+        List<Docente> docentes = new ArrayList<>();
+        for (Long idDocente : idsDocentes) {
+            docentes.add(docenteRepository.getReferenceById(
+                    Objects.requireNonNull(idDocente, "La lista de docentes contiene un ID nulo")
+            ));
+        }
+
+        Observacion observacion = new Observacion();
+        observacion.setEvaluacion(evaluacionRef);
+        observacion.setObservacion(textoObservacion);
+        observacion.setFechaRegistroObservacion(LocalDate.now());
+        observacion.setDocentes(docentes);
+
+        return observacionRepository.save(observacion);
+    }
+
+    @Transactional(readOnly = true)
+    public String listarObservaciones(@NonNull Long idFormatoA) {
+        FormatoA formato = formatoARepository.findDetalleObservaciones(idFormatoA)
+                .orElseThrow(() -> new ResourceNotFoundException("Formato A no encontrado: " + idFormatoA));
+
+        StringBuilder salida = new StringBuilder();
+        salida.append("FormatoA #").append(formato.getIdFormA0())
+                .append(" - ").append(formato.getTitulo()).append("\n");
+
+        if (formato.getEstado() != null) {
+            salida.append("Estado: ").append(formato.getEstado().getEstadoActual())
+                    .append(" (fecha ").append(formato.getEstado().getFechaRegistroEstado()).append(")\n");
+        }
+
+        List<Evaluacion> evaluacionesOrdenadas = new ArrayList<>(formato.getEvaluaciones());
+        evaluacionesOrdenadas.sort(Comparator.comparing(Evaluacion::getIdEvaluacion));
+
+        for (Evaluacion evaluacion : evaluacionesOrdenadas) {
+            salida.append("Evaluacion #").append(evaluacion.getIdEvaluacion())
+                    .append(" - concepto: ").append(evaluacion.getConcepto()).append("\n");
+            for (Observacion observacion : evaluacion.getObservaciones()) {
+                salida.append("  Observacion #").append(observacion.getIdObservacion())
+                        .append(": ").append(observacion.getObservacion()).append("\n");
+                for (Docente docente : observacion.getDocentes()) {
+                    salida.append("    Docente: ")
+                            .append(docente.getNombresDocente()).append(" ")
+                            .append(docente.getApellidosDocente())
+                            .append(" (ID ").append(docente.getIdDocente()).append(")\n");
+                }
+            }
+        }
+
+        return salida.toString();
+    }
+
+    @Transactional(readOnly = true)
+    public String listarMiembrosComite() {
+        List<Historico> historicos = historicoRepository.findByActivoTrueOrderByFechaInicioDesc();
+        StringBuilder salida = new StringBuilder("Miembros del comite\n");
+
+        for (Historico historico : historicos) {
+            salida.append("- ")
+                    .append(historico.getDocente().getNombresDocente()).append(" ")
+                    .append(historico.getDocente().getApellidosDocente())
+                    .append(" | Rol: ").append(historico.getRol().getRoleAsignado())
+                    .append(" | Inicio: ").append(historico.getFechaInicio())
+                    .append(" | Fin: ").append(historico.getFechaFin())
+                    .append("\n");
+        }
+
+        return salida.toString();
+    }
+
+    @Transactional(readOnly = true)
+    public String consultarFormatosAPorDocente(@NonNull Long idDocente) {
+        Docente docente = docenteRepository.findWithFormatosAByIdDocente(idDocente)
+                .orElseThrow(() -> new ResourceNotFoundException("Docente no encontrado: " + idDocente));
+
+        StringBuilder salida = new StringBuilder();
+        salida.append("Docente: ").append(docente.getNombresDocente()).append(" ")
+                .append(docente.getApellidosDocente()).append("\n");
+
+        for (FormatoA formato : docente.getFormatosA()) {
+            salida.append("FormatoA #").append(formato.getIdFormA0())
+                    .append(" - ").append(formato.getTitulo()).append("\n");
+
+            for (Evaluacion evaluacion : formato.getEvaluaciones()) {
+                salida.append("  Evaluacion #").append(evaluacion.getIdEvaluacion())
+                        .append(" - ").append(evaluacion.getConcepto()).append("\n");
+                for (Observacion observacion : evaluacion.getObservaciones()) {
+                    salida.append("    Observacion #").append(observacion.getIdObservacion())
+                            .append(": ").append(observacion.getObservacion()).append("\n");
+                }
+            }
+        }
+
+        return salida.toString();
+    }
+}
