@@ -1,5 +1,6 @@
 package com.taller.erjpa.service;
 
+import com.taller.erjpa.dto.FormatoAHistorialDto;
 import com.taller.erjpa.model.Docente;
 import com.taller.erjpa.model.Estado;
 import com.taller.erjpa.model.Evaluacion;
@@ -11,6 +12,7 @@ import com.taller.erjpa.model.Observacion;
 import com.taller.erjpa.exception.ResourceNotFoundException;
 import com.taller.erjpa.repository.DocenteRepository;
 import com.taller.erjpa.repository.EvaluacionRepository;
+import com.taller.erjpa.repository.EstadoRepository;
 import com.taller.erjpa.repository.FormatoARepository;
 import com.taller.erjpa.repository.HistoricoRepository;
 import com.taller.erjpa.repository.ObservacionRepository;
@@ -34,6 +36,7 @@ public class TallerRelacionesService {
     private final DocenteRepository docenteRepository;
     private final FormatoARepository formatoARepository;
     private final EvaluacionRepository evaluacionRepository;
+    private final EstadoRepository estadoRepository;
     private final ObservacionRepository observacionRepository;
     private final HistoricoRepository historicoRepository;
 
@@ -41,14 +44,60 @@ public class TallerRelacionesService {
             DocenteRepository docenteRepository,
             FormatoARepository formatoARepository,
             EvaluacionRepository evaluacionRepository,
+            EstadoRepository estadoRepository,
             ObservacionRepository observacionRepository,
             HistoricoRepository historicoRepository
     ) {
         this.docenteRepository = docenteRepository;
         this.formatoARepository = formatoARepository;
         this.evaluacionRepository = evaluacionRepository;
+        this.estadoRepository = estadoRepository;
         this.observacionRepository = observacionRepository;
         this.historicoRepository = historicoRepository;
+    }
+
+    @Transactional(readOnly = true)
+    public String consultarHistorialFormatoAPorTitulo(@NonNull String titulo) {
+        List<FormatoAHistorialDto> historial = formatoARepository.consultarHistorialPorTitulo(titulo);
+        if (historial.isEmpty()) {
+            throw new ResourceNotFoundException("No se encontro historial para el titulo: " + titulo);
+        }
+
+        StringBuilder salida = new StringBuilder("Historial del formato: ");
+        salida.append(titulo).append("\n");
+        for (FormatoAHistorialDto fila : historial) {
+            salida.append("Formato #").append(fila.idFormatoA())
+                    .append(" | Eval #").append(fila.idEvaluacion())
+                    .append(" | Concepto: ").append(fila.conceptoEvaluacion())
+                    .append(" | Fecha eval: ").append(fila.fechaEvaluacion())
+                    .append(" | Obs #").append(fila.idObservacion())
+                    .append(" | Texto: ").append(fila.textoObservacion())
+                    .append(" | Docente: ")
+                    .append(fila.nombresDocenteObservacion()).append(" ")
+                    .append(fila.apellidosDocenteObservacion())
+                    .append(" (ID ").append(fila.idDocenteObservacion()).append(")")
+                    .append("\n");
+        }
+        return salida.toString();
+    }
+
+    @Transactional(readOnly = true)
+    public boolean existeFormatoATituloNativo(@NonNull String titulo) {
+        return formatoARepository.existeFormatoATituloNativo(titulo);
+    }
+
+    @Transactional(readOnly = false)
+    public String agregarNuevoEstadoPorFormatoA(@NonNull Long idFormatoA, @NonNull String nuevoEstado) {
+        int actualizados = estadoRepository.agregarNuevoEstadoPorFormatoA(idFormatoA, nuevoEstado);
+        if (actualizados == 0) {
+            throw new ResourceNotFoundException("No existe estado asociado al formato A con id " + idFormatoA);
+        }
+        return "Estado actualizado para formato A " + idFormatoA + " -> " + nuevoEstado;
+    }
+
+    @Transactional(readOnly = true)
+    public boolean existeDocenteCorreoNativo(@NonNull String correo) {
+        return docenteRepository.existeDocenteCorreoNativo(correo);
     }
 
     @Transactional(readOnly = false)
