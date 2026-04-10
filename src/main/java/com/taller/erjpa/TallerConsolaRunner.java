@@ -13,6 +13,7 @@ import org.springframework.stereotype.Component;
 public class TallerConsolaRunner implements CommandLineRunner {
 
     private final TallerRelacionesService tallerRelacionesService;
+    private final Scanner scanner = new Scanner(System.in);
 
     public TallerConsolaRunner(TallerRelacionesService tallerRelacionesService) {
         this.tallerRelacionesService = tallerRelacionesService;
@@ -20,20 +21,26 @@ public class TallerConsolaRunner implements CommandLineRunner {
 
     @Override
     public void run(String... args) {
-        String comando;
-
         if (args.length > 0) {
-            comando = args[0].trim().toLowerCase(Locale.ROOT);
-        } else {
-            comando = leerComandoDesdeMenu();
-        }
-
-        if (comando == null || comando.isBlank() || "salir".equals(comando)) {
-            System.out.println("Sin ejecucion de metodos del taller.");
+            String comando = args[0].trim().toLowerCase(Locale.ROOT);
+            if (comando.isBlank() || "salir".equals(comando)) {
+                System.out.println("Sin ejecucion de metodos del taller.");
+                return;
+            }
+            ejecutarComando(comando);
             return;
         }
 
-        ejecutarComando(comando);
+        while (true) {
+            String comando = leerComandoDesdeMenu();
+
+            if (comando == null || comando.isBlank() || "salir".equals(comando)) {
+                System.out.println("Saliendo del menu del taller.");
+                break;
+            }
+
+            ejecutarComando(comando);
+        }
     }
 
     private String leerComandoDesdeMenu() {
@@ -50,7 +57,6 @@ public class TallerConsolaRunner implements CommandLineRunner {
         System.out.println("0. salir");
         System.out.print("Selecciona una opcion: ");
 
-        Scanner scanner = new Scanner(System.in);
         String opcion = scanner.nextLine().trim();
 
         return switch (opcion) {
