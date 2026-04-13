@@ -33,14 +33,11 @@ public class FormatoAController {
                 TallerRelacionesService.ModalidadFormato.valueOf(request.modalidad().toUpperCase());
 
         FormatoA creado = tallerRelacionesService.crearFormatoA(
+                request.docenteId(),
                 modalidad,
                 request.titulo(),
                 request.objetivoGeneral(),
-                request.objetivosEspecificos(),
-                request.correoDocente(),
-                request.nombresDocente(),
-                request.apellidosDocente(),
-                request.nombreGrupo()
+                request.objetivosEspecificos()
         );
 
         return ResponseEntity.status(HttpStatus.CREATED).body(creado);

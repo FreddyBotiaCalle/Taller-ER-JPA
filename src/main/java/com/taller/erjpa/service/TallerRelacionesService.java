@@ -100,19 +100,22 @@ public class TallerRelacionesService {
         return docenteRepository.existeDocenteCorreoNativo(correo);
     }
 
-    @Transactional(readOnly = false)
+    /**
+     * Crea un FormatoA (TIA o PPA) para un docente YA EXISTENTE.
+     * - Usa getReferenceById para evitar consulta innecesaria.
+     * - NO crea docente nuevo.
+     * - Estado inicial persistido en cascada (CascadeType.PERSIST).
+     */
+    @Transactional
     public FormatoA crearFormatoA(
+            @NonNull Long docenteId,
             ModalidadFormato modalidad,
             String titulo,
             String objetivoGeneral,
-            String objetivosEspecificos,
-            String correoDocente,
-            String nombresDocente,
-            String apellidosDocente,
-            String nombreGrupo
+            String objetivosEspecificos
     ) {
-        Docente docente = docenteRepository.findByCorreo(correoDocente)
-                .orElseGet(() -> new Docente(nombresDocente, apellidosDocente, nombreGrupo, correoDocente));
+        // getReferenceById: proxy del docente existente, sin consulta inmediata
+        Docente docente = docenteRepository.getReferenceById(docenteId);
 
         FormatoA formato = modalidad == ModalidadFormato.PPA ? new FormatoPpa() : new FormatoTia();
         formato.setTitulo(titulo);
@@ -120,11 +123,14 @@ public class TallerRelacionesService {
         formato.setObjetivosEspecificos(objetivosEspecificos);
         formato.setDocente(docente);
 
+        // Estado inicial: se persiste en cascada desde FormatoA (CascadeType.PERSIST)
+        // setEstado mantiene consistencia bidireccional (estado.setFormatoA)
         Estado estadoInicial = new Estado();
         estadoInicial.setEstadoActual("En formulacion");
         estadoInicial.setFechaRegistroEstado(LocalDate.now());
         formato.setEstado(estadoInicial);
 
+        // Solo guardamos FormatoA; Estado se persiste en cascada
         return formatoARepository.save(formato);
     }
 
@@ -144,7 +150,7 @@ public class TallerRelacionesService {
                 })
                 .orElseGet(() -> {
                     Evaluacion nueva = new Evaluacion();
-                    nueva.setConcepto("Sin concepto aun por establecer");
+                    nueva.setConcepto("Sin definir");
                     nueva.setFechaRegistroConcepto(LocalDate.now());
                     nueva.setNombreCoordinador("Pendiente");
                     nueva.setFormatoA(formato);
