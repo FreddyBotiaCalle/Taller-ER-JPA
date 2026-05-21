@@ -390,6 +390,96 @@
           ]
         },
         {
+          "name": "Crear formato A - objetivos inválidos (espera 400)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"modalidad\": \"TIA\",\n  \"titulo\": \"Formato con objetivos inválidos\",\n  \"objetivoGeneral\": \"Objetivo general\",\n  \"objetivosEspecificos\": [\"Analiza literatura\", \"sin verbo\"],\n  \"correoDocente\": \"ana.perez@correo.com\",\n  \"nombresDocente\": \"Ana\",\n  \"apellidosDocente\": \"Perez\",\n  \"nombreGrupo\": \"G1\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/formatos-a",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "formatos-a"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 400', function () {",
+                  "  pm.response.to.have.status(400);",
+                  "});",
+                  "",
+                  "pm.test('Response contains validation message for objetivos', function () {",
+                  "  let body;",
+                  "  try { body = pm.response.json(); } catch(e) { body = pm.response.text(); }",
+                  "  pm.expect(JSON.stringify(body).toLowerCase()).to.include('objetiv');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Crear formato A - falta titulo (espera 400)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"modalidad\": \"TIA\",\n  \"titulo\": \"\",\n  \"objetivoGeneral\": \"Objetivo general\",\n  \"objetivosEspecificos\": [\"Analizar literatura\", \"Diseñar esquema\", \"Implementar pruebas\"],\n  \"correoDocente\": \"ana.perez@correo.com\",\n  \"nombresDocente\": \"Ana\",\n  \"apellidosDocente\": \"Perez\",\n  \"nombreGrupo\": \"G1\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/formatos-a",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "formatos-a"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 400', function () {",
+                  "  pm.response.to.have.status(400);",
+                  "});",
+                  "",
+                  "pm.test('Response contains validation message for titulo', function () {",
+                  "  let body;",
+                  "  try { body = pm.response.json(); } catch(e) { body = pm.response.text(); }",
+                  "  pm.expect(JSON.stringify(body).toLowerCase()).to.include('titulo');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        }
+        {
           "name": "Obtener evaluacion por id",
           "request": {
             "method": "GET",
