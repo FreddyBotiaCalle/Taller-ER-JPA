@@ -1,8 +1,8 @@
 package com.taller.erjpa.controller;
 
 import com.taller.erjpa.exception.ResourceNotFoundException;
+import com.taller.erjpa.dto.ObservacionDto;
 import com.taller.erjpa.dto.ObservacionRequest;
-import com.taller.erjpa.model.Observacion;
 import com.taller.erjpa.service.ObservacionService;
 import jakarta.validation.Valid;
 import java.util.List;
@@ -29,28 +29,28 @@ public class ObservacionController {
     }
 
     @GetMapping
-    public ResponseEntity<List<Observacion>> listarTodas() {
+    public ResponseEntity<List<ObservacionDto>> listarTodas() {
         return ResponseEntity.ok(observacionService.listarTodas());
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Observacion> obtenerPorId(@PathVariable @NonNull Long id) {
-        Observacion observacion = observacionService.obtenerPorId(id)
+    public ResponseEntity<ObservacionDto> obtenerPorId(@PathVariable @NonNull Long id) {
+        ObservacionDto observacion = observacionService.obtenerPorId(id)
             .orElseThrow(() -> new ResourceNotFoundException("Observacion no encontrada: " + id));
         return ResponseEntity.ok(observacion);
     }
 
     @PostMapping
-    public ResponseEntity<Observacion> crear(@Valid @RequestBody @NonNull ObservacionRequest request) {
+    public ResponseEntity<ObservacionDto> crear(@Valid @RequestBody @NonNull ObservacionRequest request) {
         return ResponseEntity.status(HttpStatus.CREATED).body(observacionService.crear(request));
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Observacion> actualizar(
+    public ResponseEntity<ObservacionDto> actualizar(
             @PathVariable @NonNull Long id,
             @Valid @RequestBody @NonNull ObservacionRequest request
     ) {
-        Observacion actualizada = observacionService.actualizar(id, request)
+        ObservacionDto actualizada = observacionService.actualizar(id, request)
             .orElseThrow(() -> new ResourceNotFoundException("Observacion no encontrada: " + id));
         return ResponseEntity.ok(actualizada);
     }

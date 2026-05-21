@@ -17,12 +17,15 @@ public interface DocenteRepository extends JpaRepository<Docente, Long> {
     @EntityGraph(attributePaths = "formatosA")
     Optional<Docente> findWithFormatosAByIdDocente(Long idDocente);
 
-    @Query(value = """
-            select case when count(*) > 0 then true else false end
-            from docentes
-            where lower(correo) = lower(:correo)
-            """, nativeQuery = true)
+        @Query("""
+            select (count(d) > 0)
+            from Docente d
+            where lower(d.correo) = lower(:correo)
+            """)
     boolean existeDocenteCorreoNativo(@Param("correo") String correo);
+
+            @Query(value = "SELECT CASE WHEN COUNT(*)>0 THEN TRUE ELSE FALSE END FROM docentes WHERE LOWER(correo)=LOWER(:correo)", nativeQuery = true)
+            boolean existeDocenteCorreoNative(@Param("correo") String correo);
 
         @Query("""
                         select d from Docente d

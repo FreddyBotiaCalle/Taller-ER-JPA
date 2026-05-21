@@ -1,5 +1,6 @@
 package com.taller.erjpa.service;
 
+import com.taller.erjpa.dto.ObservacionDto;
 import com.taller.erjpa.dto.ObservacionRequest;
 import com.taller.erjpa.model.Docente;
 import com.taller.erjpa.model.Evaluacion;
@@ -32,15 +33,15 @@ public class ObservacionService {
         this.docenteRepository = docenteRepository;
     }
 
-    public List<Observacion> listarTodas() {
-        return observacionRepository.findAll();
+    public List<ObservacionDto> listarTodas() {
+        return observacionRepository.findAll().stream().map(this::toDto).toList();
     }
 
-    public Optional<Observacion> obtenerPorId(@NonNull Long id) {
-        return observacionRepository.findById(id);
+    public Optional<ObservacionDto> obtenerPorId(@NonNull Long id) {
+        return observacionRepository.findById(id).map(this::toDto);
     }
 
-    public Observacion crear(@NonNull ObservacionRequest request) {
+    public ObservacionDto crear(@NonNull ObservacionRequest request) {
         Evaluacion evaluacion = evaluacionRepository.getReferenceById(
             Objects.requireNonNull(request.idEvaluacion(), "idEvaluacion es obligatorio")
         );
@@ -55,14 +56,15 @@ public class ObservacionService {
         observacion.setEvaluacion(evaluacion);
         observacion.setObservacion(request.observacion());
         observacion.setFechaRegistroObservacion(
-                request.fechaRegistroObservacion() != null ? request.fechaRegistroObservacion() : LocalDate.now()
+            request.fechaRegistroObservacion() != null ? request.fechaRegistroObservacion() : LocalDate.now()
         );
         observacion.setDocentes(docentes);
 
-        return observacionRepository.save(observacion);
+        Observacion saved = observacionRepository.save(observacion);
+        return toDto(saved);
     }
 
-    public Optional<Observacion> actualizar(@NonNull Long id, @NonNull ObservacionRequest request) {
+    public Optional<ObservacionDto> actualizar(@NonNull Long id, @NonNull ObservacionRequest request) {
         return observacionRepository.findById(id).map(existente -> {
             existente.setEvaluacion(evaluacionRepository.getReferenceById(
                 Objects.requireNonNull(request.idEvaluacion(), "idEvaluacion es obligatorio")
@@ -80,7 +82,8 @@ public class ObservacionService {
             }
             existente.setDocentes(docentes);
 
-            return observacionRepository.save(existente);
+            Observacion updated = observacionRepository.save(existente);
+            return toDto(updated);
         });
     }
 
@@ -90,5 +93,10 @@ public class ObservacionService {
         }
         observacionRepository.deleteById(id);
         return true;
+    }
+
+    private ObservacionDto toDto(Observacion o) {
+        List<Long> ids = o.getDocentes().stream().map(Docente::getIdDocente).toList();
+        return new ObservacionDto(o.getIdObservacion(), o.getObservacion(), o.getFechaRegistroObservacion(), o.getEvaluacion().getIdEvaluacion(), ids);
     }
 }

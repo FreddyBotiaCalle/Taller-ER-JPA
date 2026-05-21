@@ -51,6 +51,7 @@ public class Docente {
     private Set<Historico> historicos = new HashSet<>();
 
     @ManyToMany(mappedBy = "docentes")
+    @JsonIgnore
     private List<Observacion> observaciones = new ArrayList<>();
 
     public Docente() {

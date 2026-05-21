@@ -49,12 +49,15 @@ public interface FormatoARepository extends JpaRepository<FormatoA, Long> {
 		    """)
 	    List<FormatoAHistorialDto> consultarHistorialPorTitulo(@Param("titulo") String titulo);
 
-	    @Query(value = """
-		    select case when count(*) > 0 then true else false end
-		    from formatosa
-		    where lower(titulo) = lower(:titulo)
-		    """, nativeQuery = true)
+	    @Query("""
+		    select (count(f) > 0)
+		    from FormatoA f
+		    where lower(f.titulo) = lower(:titulo)
+		    """)
 	    boolean existeFormatoATituloNativo(@Param("titulo") String titulo);
+
+	    @Query(value = "SELECT CASE WHEN COUNT(*)>0 THEN TRUE ELSE FALSE END FROM formatosa WHERE LOWER(titulo)=LOWER(:titulo)", nativeQuery = true)
+	    boolean existeFormatoATituloNative(@Param("titulo") String titulo);
 
 	    @Query("""
 		    select distinct f from FormatoA f

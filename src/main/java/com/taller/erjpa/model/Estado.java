@@ -6,6 +6,7 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
+import jakarta.persistence.MapsId;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 import java.time.LocalDate;
@@ -15,7 +16,6 @@ import java.time.LocalDate;
 public class Estado {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id_estado")
     private Long idEstado;
 
@@ -26,6 +26,7 @@ public class Estado {
     private LocalDate fechaRegistroEstado;
 
     @OneToOne(optional = false)
+    @MapsId
     @JoinColumn(name = "id_form_a0", nullable = false, unique = true)
     private FormatoA formatoA;
 

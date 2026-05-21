@@ -21,6 +21,8 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
+import java.util.stream.Collectors;
+import com.taller.erjpa.dto.HistoricoDto;
 import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -107,20 +109,25 @@ public class TallerRelacionesService {
      * - Estado inicial persistido en cascada (CascadeType.PERSIST).
      */
     @Transactional
-    public FormatoA crearFormatoA(
+        public FormatoA crearFormatoA(
             @NonNull Long docenteId,
             ModalidadFormato modalidad,
             String titulo,
             String objetivoGeneral,
-            String objetivosEspecificos
-    ) {
+            java.util.List<String> objetivosEspecificos
+        ) {
+        if (!docenteRepository.existsById(docenteId)) {
+            throw new ResourceNotFoundException("No existe un docente con id " + docenteId);
+        }
+
         // getReferenceById: proxy del docente existente, sin consulta inmediata
         Docente docente = docenteRepository.getReferenceById(docenteId);
 
         FormatoA formato = modalidad == ModalidadFormato.PPA ? new FormatoPpa() : new FormatoTia();
         formato.setTitulo(titulo);
         formato.setObjetivoGeneral(objetivoGeneral);
-        formato.setObjetivosEspecificos(objetivosEspecificos);
+        // join objetivos list into a single text block
+        formato.setObjetivosEspecificos(objetivosEspecificos == null ? null : String.join("\n", objetivosEspecificos));
         formato.setDocente(docente);
 
         // Estado inicial: se persiste en cascada desde FormatoA (CascadeType.PERSIST)
@@ -131,7 +138,13 @@ public class TallerRelacionesService {
         formato.setEstado(estadoInicial);
 
         // Solo guardamos FormatoA; Estado se persiste en cascada
-        return formatoARepository.save(formato);
+        FormatoA guardado = formatoARepository.save(formato);
+        // Initialize possible proxies (docente) while still in transaction to avoid
+        // LazyInitializationException when controller builds DTO after transaction
+        if (guardado.getDocente() != null) {
+            guardado.getDocente().getIdDocente();
+        }
+        return guardado;
     }
 
     @Transactional(readOnly = false)
@@ -228,6 +241,21 @@ public class TallerRelacionesService {
         }
 
         return salida.toString();
+    }
+
+    @Transactional(readOnly = true)
+    public List<HistoricoDto> listarMiembrosComiteDto() {
+        List<Historico> historicos = historicoRepository.findByActivoTrueOrderByFechaInicioDesc();
+        return historicos.stream().map(h -> new HistoricoDto(
+                h.getIdHistorico(),
+                h.getDocente() != null ? h.getDocente().getIdDocente() : null,
+                h.getDocente() != null ? h.getDocente().getNombresDocente() : null,
+                h.getDocente() != null ? h.getDocente().getApellidosDocente() : null,
+                h.getRol() != null ? h.getRol().getRoleAsignado() : null,
+                h.getFechaInicio(),
+                h.getFechaFin(),
+                h.getActivo()
+        )).collect(Collectors.toList());
     }
 
     @Transactional(readOnly = true)

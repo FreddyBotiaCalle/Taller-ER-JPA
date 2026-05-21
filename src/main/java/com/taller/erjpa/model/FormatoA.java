@@ -38,7 +38,7 @@ public abstract class FormatoA {
     @Column(name = "objetivos_especificos", columnDefinition = "TEXT")
     private String objetivosEspecificos;
 
-    @ManyToOne(optional = false, cascade = CascadeType.PERSIST)
+    @ManyToOne(optional = false)
     @JoinColumn(name = "idfk_docente", nullable = false)
     private Docente docente;
 

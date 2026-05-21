@@ -1,8 +1,11 @@
 package com.taller.erjpa.controller;
 
+import com.taller.erjpa.dto.DocenteDto;
 import com.taller.erjpa.exception.ResourceNotFoundException;
-import com.taller.erjpa.model.Docente;
 import com.taller.erjpa.service.DocenteService;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Page;
 import jakarta.validation.Valid;
 import java.util.List;
 import org.springframework.http.HttpStatus;
@@ -28,29 +31,37 @@ public class DocenteController {
     }
 
     @GetMapping
-    public ResponseEntity<List<Docente>> listarTodos() {
-        return ResponseEntity.ok(docenteService.listarTodos());
+    public ResponseEntity<?> listarTodos(
+            @org.springframework.web.bind.annotation.RequestParam(required = false) Integer page,
+            @org.springframework.web.bind.annotation.RequestParam(required = false) Integer size
+    ) {
+        if (page == null || size == null) {
+            return ResponseEntity.ok(docenteService.listarTodos());
+        }
+        Pageable pageable = PageRequest.of(Math.max(0, page), Math.max(1, size));
+        Page<DocenteDto> resultado = docenteService.listar(pageable);
+        return ResponseEntity.ok(resultado);
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Docente> obtenerPorId(@PathVariable @NonNull Long id) {
-        Docente docente = docenteService.obtenerPorId(id)
+    public ResponseEntity<DocenteDto> obtenerPorId(@PathVariable @NonNull Long id) {
+        DocenteDto docente = docenteService.obtenerPorId(id)
             .orElseThrow(() -> new ResourceNotFoundException("Docente no encontrado: " + id));
         return ResponseEntity.ok(docente);
     }
 
     @PostMapping
-    public ResponseEntity<Docente> crear(@Valid @RequestBody @NonNull Docente docente) {
-        Docente creado = docenteService.crear(docente);
+    public ResponseEntity<DocenteDto> crear(@Valid @RequestBody @NonNull DocenteDto docente) {
+        DocenteDto creado = docenteService.crear(docente);
         return ResponseEntity.status(HttpStatus.CREATED).body(creado);
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Docente> actualizar(
+    public ResponseEntity<DocenteDto> actualizar(
             @PathVariable @NonNull Long id,
-            @Valid @RequestBody @NonNull Docente docente
+            @Valid @RequestBody @NonNull DocenteDto docente
     ) {
-        Docente actualizado = docenteService.actualizar(id, docente)
+        DocenteDto actualizado = docenteService.actualizar(id, docente)
             .orElseThrow(() -> new ResourceNotFoundException("Docente no encontrado: " + id));
         return ResponseEntity.ok(actualizado);
     }

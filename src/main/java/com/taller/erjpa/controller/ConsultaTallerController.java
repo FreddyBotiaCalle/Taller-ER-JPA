@@ -2,15 +2,21 @@ package com.taller.erjpa.controller;
 
 import com.taller.erjpa.service.TallerRelacionesService;
 import org.springframework.http.ResponseEntity;
+import com.taller.erjpa.dto.EstadoUpdateResponse;
+import java.util.List;
 import org.springframework.lang.NonNull;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import io.swagger.v3.oas.annotations.tags.Tag;
 
 @RestController
+@Validated
+@Tag(name = "Taller", description = "Consultas y acciones relacionadas con el taller y sus formatos")
 @RequestMapping("/api/taller")
 public class ConsultaTallerController {
 
@@ -21,12 +27,12 @@ public class ConsultaTallerController {
     }
 
     @GetMapping("/comite")
-    public ResponseEntity<String> listarComite() {
-        return ResponseEntity.ok(tallerRelacionesService.listarMiembrosComite());
+    public ResponseEntity<List<com.taller.erjpa.dto.HistoricoDto>> listarComite() {
+        return ResponseEntity.ok(tallerRelacionesService.listarMiembrosComiteDto());
     }
 
     @GetMapping("/docentes/{idDocente}/formatos-a")
-    public ResponseEntity<String> consultarFormatosDocente(@PathVariable @NonNull Long idDocente) {
+    public ResponseEntity<String> consultarFormatosDocente(@PathVariable @NonNull @jakarta.validation.constraints.Min(1) Long idDocente) {
         return ResponseEntity.ok(tallerRelacionesService.consultarFormatosAPorDocente(idDocente));
     }
 
@@ -41,11 +47,13 @@ public class ConsultaTallerController {
     }
 
     @PatchMapping("/formatos-a/{idFormatoA}/estado")
-    public ResponseEntity<String> actualizarEstadoFormato(
+    public ResponseEntity<EstadoUpdateResponse> actualizarEstadoFormato(
             @PathVariable @NonNull Long idFormatoA,
             @RequestParam @NonNull String nuevoEstado
     ) {
-        return ResponseEntity.ok(tallerRelacionesService.agregarNuevoEstadoPorFormatoA(idFormatoA, nuevoEstado));
+        String mensaje = tallerRelacionesService.agregarNuevoEstadoPorFormatoA(idFormatoA, nuevoEstado);
+        EstadoUpdateResponse resp = new EstadoUpdateResponse(idFormatoA, nuevoEstado, mensaje);
+        return ResponseEntity.ok(resp);
     }
 
     @GetMapping("/docentes/existe")

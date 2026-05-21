@@ -6,10 +6,15 @@ import com.taller.erjpa.service.TallerRelacionesService;
 import java.util.List;
 import java.util.Locale;
 import java.util.Scanner;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.stream.Collectors;
 import org.springframework.boot.CommandLineRunner;
+import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 
 @Component
+@Profile("!test")
 public class TallerConsolaRunner implements CommandLineRunner {
 
     private final TallerRelacionesService tallerRelacionesService;
@@ -39,7 +44,12 @@ public class TallerConsolaRunner implements CommandLineRunner {
                 break;
             }
 
-            ejecutarComando(comando);
+            try {
+                ejecutarComando(comando);
+            } catch (Exception ex) {
+                System.err.println("[ERROR] La ejecucion de la opcion fallo: " + ex.getMessage());
+                System.err.println("El menu continuara activo. Elige otra opcion o 0 para salir.\n");
+            }
         }
     }
 
@@ -51,9 +61,9 @@ public class TallerConsolaRunner implements CommandLineRunner {
         System.out.println("4. listar-comite");
         System.out.println("5. consultar-formatos-docente");
         System.out.println("6. historial-formato-por-titulo");
-        System.out.println("7. existe-formato-titulo-nativo");
+        System.out.println("7. validar-existencia-formato-por-titulo");
         System.out.println("8. actualizar-estado-formato");
-        System.out.println("9. existe-docente-correo-nativo");
+        System.out.println("9. validar-existencia-docente-por-correo");
         System.out.println("0. salir");
         System.out.print("Selecciona una opcion: ");
 
@@ -79,114 +89,120 @@ public class TallerConsolaRunner implements CommandLineRunner {
 
         switch (comando) {
             case "crear-formatoa" -> {
-                try {
-                    System.out.print("Ingrese ID del docente: ");
-                    Long docenteId = Long.parseLong(scanner.nextLine().trim());
-
-                    System.out.print("Ingrese tipo de formato (TIA o PPA): ");
-                    String tipoInput = scanner.nextLine().trim().toUpperCase(Locale.ROOT);
-                    TallerRelacionesService.ModalidadFormato modalidad =
-                            TallerRelacionesService.ModalidadFormato.valueOf(tipoInput);
-
-                    System.out.print("Ingrese titulo: ");
-                    String titulo = scanner.nextLine().trim();
-                    if (titulo.isBlank()) {
-                        System.out.println("Error: el titulo no puede estar vacio.");
-                        break;
-                    }
-
-                    System.out.print("Ingrese objetivo general: ");
-                    String objetivoGeneral = scanner.nextLine().trim();
-
-                    System.out.print("Ingrese objetivos especificos: ");
-                    String objetivosEspecificos = scanner.nextLine().trim();
+                Long docenteId = leerLong("Id del docente: ");
+                TallerRelacionesService.ModalidadFormato modalidad = leerModalidadFormato();
+                String titulo = leerTexto("Titulo del formato: ");
+                String objetivoGeneral = leerTexto("Objetivo general: ");
+                    String objetivosEspecificos = leerTexto("Objetivos especificos (separe por coma): ");
+                    java.util.List<String> objetivosList = java.util.Arrays.stream(objetivosEspecificos.split(","))
+                        .map(String::trim)
+                        .filter(s -> !s.isBlank())
+                        .toList();
 
                     FormatoA formato = tallerRelacionesService.crearFormatoA(
-                            docenteId,
-                            modalidad,
-                            titulo,
-                            objetivoGeneral,
-                            objetivosEspecificos
+                        docenteId,
+                        modalidad,
+                        titulo,
+                        objetivoGeneral,
+                        objetivosList
                     );
-                    System.out.println("Formato creado con ID: " + formato.getIdFormA0());
-
-                } catch (NumberFormatException e) {
-                    System.out.println("Error: el ID del docente debe ser un numero entero.");
-                } catch (IllegalArgumentException e) {
-                    System.out.println("Error: tipo de formato invalido. Use TIA o PPA.");
-                } catch (Exception e) {
-                    System.out.println("Error al crear formato: " + e.getMessage());
-                }
+                System.out.println("Formato A creado con ID: " + formato.getIdFormA0());
             }
             case "crear-observacion" -> {
-                try {
-                    System.out.print("Ingrese ID del formato A: ");
-                    Long formatoAId = Long.parseLong(scanner.nextLine().trim());
+                Long idFormatoA = leerLong("Id del formato A: ");
+                List<Long> idsDocentes = leerListaLongs("Ids de docentes separados por coma: ");
+                String textoObservacion = leerTexto("Texto de la observacion: ");
 
-                    System.out.print("Ingrese IDs de docentes separados por coma (ej: 1,2): ");
-                    String idsInput = scanner.nextLine().trim();
-                    if (idsInput.isBlank()) {
-                        System.out.println("Error: debe ingresar al menos un ID de docente.");
-                        break;
-                    }
-                    List<Long> idsDocentes = java.util.Arrays.stream(idsInput.split(","))
-                            .map(String::trim)
-                            .map(Long::parseLong)
-                            .toList();
-
-                    System.out.print("Ingrese comentario: ");
-                    String comentario = scanner.nextLine().trim();
-
-                    Observacion observacion = tallerRelacionesService.crearObservacion(
-                            formatoAId, idsDocentes, comentario);
-                    System.out.println("Observacion creada con ID: " + observacion.getIdObservacion());
-
-                } catch (NumberFormatException e) {
-                    System.out.println("Error: los IDs deben ser numeros enteros.");
-                } catch (Exception e) {
-                    System.out.println("Error al crear observacion: " + e.getMessage());
-                }
+                Observacion observacion = tallerRelacionesService.crearObservacion(
+                idFormatoA,
+                idsDocentes,
+                textoObservacion
+                );
+                System.out.println("Observacion creada con ID: " + observacion.getIdObservacion());
             }
             case "listar-observaciones" -> {
-                try {
-                    System.out.print("Ingrese ID del formato A: ");
-                    Long formatoAId = Long.parseLong(scanner.nextLine().trim());
-                    System.out.println(tallerRelacionesService.listarObservaciones(formatoAId));
-                } catch (NumberFormatException e) {
-                    System.out.println("Error: el ID debe ser un numero entero.");
-                } catch (Exception e) {
-                    System.out.println("Error al listar observaciones: " + e.getMessage());
-                }
+                Long idFormatoA = leerLong("Id del formato A: ");
+                System.out.println(tallerRelacionesService.listarObservaciones(idFormatoA));
             }
-            case "listar-comite" -> {
-                try {
-                    System.out.println(tallerRelacionesService.listarMiembrosComite());
-                } catch (Exception e) {
-                    System.out.println("Error al listar comite: " + e.getMessage());
-                }
-            }
+            case "listar-comite" -> System.out.println(tallerRelacionesService.listarMiembrosComite());
             case "consultar-formatos-docente" -> {
-                try {
-                    System.out.print("Ingrese ID del docente: ");
-                    Long docenteId = Long.parseLong(scanner.nextLine().trim());
-                    System.out.println(tallerRelacionesService.consultarFormatosAPorDocente(docenteId));
-                } catch (NumberFormatException e) {
-                    System.out.println("Error: el ID debe ser un numero entero.");
-                } catch (Exception e) {
-                    System.out.println("Error al consultar formatos: " + e.getMessage());
+                Long docenteId = leerLong("Id del docente: ");
+                System.out.println(tallerRelacionesService.consultarFormatosAPorDocente(docenteId));
+            }
+            case "historial-formato-por-titulo" -> {
+                String titulo = leerTexto("Titulo del formato A: ");
+                System.out.println(tallerRelacionesService.consultarHistorialFormatoAPorTitulo(titulo));
+            }
+            case "existe-formato-titulo-nativo" -> {
+                String titulo = leerTexto("Titulo del formato A: ");
+                boolean existe = tallerRelacionesService.existeFormatoATituloNativo(titulo);
+                if (existe) {
+                    System.out.println("Si existe un Formato A con ese titulo.");
+                } else {
+                    System.out.println("No existe un Formato A con ese titulo.");
                 }
             }
-                case "historial-formato-por-titulo" ->
-                    System.out.println(tallerRelacionesService.consultarHistorialFormatoAPorTitulo("Formato TI-A de prueba"));
-                case "existe-formato-titulo-nativo" ->
-                    System.out.println(tallerRelacionesService.existeFormatoATituloNativo("Formato TI-A de prueba"));
-                case "actualizar-estado-formato" ->
-                    System.out.println(tallerRelacionesService.agregarNuevoEstadoPorFormatoA(1L, "En revision"));
-                case "existe-docente-correo-nativo" ->
-                    System.out.println(tallerRelacionesService.existeDocenteCorreoNativo("ana.perez@correo.com"));
+            case "actualizar-estado-formato" -> {
+                Long idFormatoA = leerLong("Id del formato A: ");
+                String nuevoEstado = leerTexto("Nuevo estado: ");
+                System.out.println(tallerRelacionesService.agregarNuevoEstadoPorFormatoA(idFormatoA, nuevoEstado));
+            }
+            case "existe-docente-correo-nativo" -> {
+                String correo = leerTexto("Correo del docente: ");
+                boolean existe = tallerRelacionesService.existeDocenteCorreoNativo(correo);
+                if (existe) {
+                    System.out.println("Si existe un docente registrado con ese correo.");
+                } else {
+                    System.out.println("No existe un docente registrado con ese correo.");
+                }
+            }
             default -> System.out.println("Comando no reconocido.");
         }
 
         System.out.println("=== Fin ejecucion ===\n");
+    }
+
+    private TallerRelacionesService.ModalidadFormato leerModalidadFormato() {
+        System.out.println("Modalidad del formato:");
+        System.out.println("1. TIA");
+        System.out.println("2. PPA");
+        System.out.print("Selecciona una opcion: ");
+        String opcion = scanner.nextLine().trim();
+        return "2".equals(opcion) ? TallerRelacionesService.ModalidadFormato.PPA : TallerRelacionesService.ModalidadFormato.TIA;
+    }
+
+    private String leerTexto(String mensaje) {
+        System.out.print(mensaje);
+        return scanner.nextLine().trim();
+    }
+
+    private Long leerLong(String mensaje) {
+        while (true) {
+            try {
+                System.out.print(mensaje);
+                return Long.parseLong(scanner.nextLine().trim());
+            } catch (NumberFormatException ex) {
+                System.out.println("Valor invalido, intenta de nuevo.");
+            }
+        }
+    }
+
+    private List<Long> leerListaLongs(String mensaje) {
+        while (true) {
+            try {
+                System.out.print(mensaje);
+                String entrada = scanner.nextLine().trim();
+                if (entrada.isBlank()) {
+                    return new ArrayList<>();
+                }
+                return Arrays.stream(entrada.split(","))
+                        .map(String::trim)
+                        .filter(texto -> !texto.isBlank())
+                        .map(Long::parseLong)
+                        .collect(Collectors.toList());
+            } catch (NumberFormatException ex) {
+                System.out.println("Uno de los valores no es valido, intenta de nuevo.");
+            }
+        }
     }
 }

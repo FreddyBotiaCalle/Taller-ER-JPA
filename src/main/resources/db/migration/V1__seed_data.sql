@@ -1,4 +1,5 @@
-INSERT IGNORE INTO docentes (id_docente, nombres_docente, apellidos_docente, nombre_grupo, correo) VALUES
+-- Seed data migrated from data-dev.sql for Flyway
+INSERT INTO docentes (id_docente, nombres_docente, apellidos_docente, nombre_grupo, correo) VALUES
 (1, 'Ana', 'Perez', 'G1', 'ana.perez@correo.com'),
 (2, 'Luis', 'Gomez', 'G2', 'luis.gomez@correo.com'),
 (3, 'Carlos', 'Ramirez', 'G3', 'carlos.ramirez@correo.com'),
@@ -6,12 +7,12 @@ INSERT IGNORE INTO docentes (id_docente, nombres_docente, apellidos_docente, nom
 (5, 'Jorge', 'Becerra', 'G2', 'jorge.becerra@correo.com'),
 (6, 'Paola', 'Quintero', 'G1', 'paola.quintero@correo.com');
 
-INSERT IGNORE INTO roles (id_rol, role_asignado) VALUES
+INSERT INTO roles (id_rol, role_asignado) VALUES
 (1, 'Director de trabajo de grado'),
 (2, 'Miembro de comite'),
 (3, 'Coordinador de programa');
 
-INSERT IGNORE INTO historicos (id_historico, idfk_docente, idfk_rol, activo, fecha_inicio, fecha_fin) VALUES
+INSERT INTO historicos (id_historico, idfk_docente, idfk_rol, activo, fecha_inicio, fecha_fin) VALUES
 (1, 1, 1, 1, '2026-01-15', NULL),
 (2, 2, 2, 1, '2026-02-01', NULL),
 (3, 3, 2, 1, '2026-02-10', NULL),
@@ -19,7 +20,7 @@ INSERT IGNORE INTO historicos (id_historico, idfk_docente, idfk_rol, activo, fec
 (5, 5, 1, 0, '2025-03-01', '2026-01-10'),
 (6, 6, 2, 1, '2026-03-05', NULL);
 
-INSERT IGNORE INTO formatosa (id_form_a0, titulo, objetivo_general, objetivos_especificos, idfk_docente) VALUES
+INSERT INTO formatosa (id_form_a0, titulo, objetivo_general, objetivos_especificos, idfk_docente) VALUES
 (1, 'Modelo de deteccion temprana de fallas en redes IoT',
  'Disenar un sistema de monitoreo inteligente para laboratorios FIET.',
  'Definir arquitectura; construir prototipo; validar precision.',
@@ -45,17 +46,17 @@ INSERT IGNORE INTO formatosa (id_form_a0, titulo, objetivo_general, objetivos_es
  'Gestion documental; control de versiones; politicas de acceso.',
  6);
 
-INSERT IGNORE INTO formatos_tia (id_form_a0, nombre_estudiante1, nombre_estudiante2) VALUES
+INSERT INTO formatos_tia (id_form_a0, nombre_estudiante1, nombre_estudiante2) VALUES
 (1, 'Laura Medina', 'Camilo Ortega'),
 (3, 'Valentina Rojas', 'Santiago Mora'),
 (4, 'Daniela Salazar', 'Juan Pablo Leon');
 
-INSERT IGNORE INTO formatos_ppa (id_form_a0, nombre_asesor, nombre_estudiante1, ruta_carta_aceptacion) VALUES
+INSERT INTO formatos_ppa (id_form_a0, nombre_asesor, nombre_estudiante1, ruta_carta_aceptacion) VALUES
 (2, 'Ing. Martha Riascos', 'Miguel Cabrera', '/cartas/ppa/formato2.pdf'),
 (5, 'Ing. Hector Narvaez', 'Natalia Cardenas', '/cartas/ppa/formato5.pdf'),
 (6, 'Ing. Juliana Rengifo', 'Andres Quiroga', '/cartas/ppa/formato6.pdf');
 
-INSERT IGNORE INTO estados (id_estado, estado_actual, fecha_registro_estado, id_form_a0) VALUES
+INSERT INTO estados (id_estado, estado_actual, fecha_registro_estado, id_form_a0) VALUES
 (1, 'En formulacion', '2026-02-15', 1),
 (2, 'Por corregir', '2026-02-20', 2),
 (3, 'En evaluacion', '2026-03-01', 3),
@@ -63,7 +64,7 @@ INSERT IGNORE INTO estados (id_estado, estado_actual, fecha_registro_estado, id_
 (5, 'Aprobado', '2026-03-10', 5),
 (6, 'Por corregir', '2026-03-12', 6);
 
-INSERT IGNORE INTO evaluaciones (id_evaluacion, concepto, fecha_registro_concepto, nombre_coordinador, id_form_a0) VALUES
+INSERT INTO evaluaciones (id_evaluacion, concepto, fecha_registro_concepto, nombre_coordinador, id_form_a0) VALUES
 (1, 'Por corregir', '2026-02-25', 'Martha Riascos', 1),
 (2, 'Sin concepto aun por establecer', '2026-03-01', 'Coordinacion FIET', 1),
 (3, 'Por corregir', '2026-02-28', 'Hector Narvaez', 2),
@@ -72,7 +73,7 @@ INSERT IGNORE INTO evaluaciones (id_evaluacion, concepto, fecha_registro_concept
 (6, 'Aprobado', '2026-03-20', 'Coordinacion FIET', 5),
 (7, 'Por corregir', '2026-03-22', 'Hector Narvaez', 6);
 
-INSERT IGNORE INTO observaciones (id_observacion, observacion, fecha_registro_observacion, id_evaluacion) VALUES
+INSERT INTO observaciones (id_observacion, observacion, fecha_registro_observacion, id_evaluacion) VALUES
 (1, 'Ajustar marco teorico y ampliar antecedentes internacionales.', '2026-02-26', 1),
 (2, 'Replantear alcance de la implementacion para el primer corte.', '2026-02-27', 1),
 (3, 'Definir con mayor precision indicadores de validacion.', '2026-03-03', 3),
@@ -82,7 +83,7 @@ INSERT IGNORE INTO observaciones (id_observacion, observacion, fecha_registro_ob
 (7, 'Agregar analisis de riesgos tecnicos y plan de mitigacion.', '2026-03-21', 7),
 (8, 'Incluir referencias bibliograficas en formato IEEE.', '2026-03-23', 7);
 
-INSERT IGNORE INTO observacion_docentes (id_observacion, id_docente) VALUES
+INSERT INTO observacion_docentes (id_observacion, id_docente) VALUES
 (1, 2),
 (1, 4),
 (2, 3),
